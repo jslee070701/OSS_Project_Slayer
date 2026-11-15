@@ -1,4 +1,5 @@
 #include "player/player.h"
+#include <cmath>
 
 // 플레이어 생성
 Player CreatePlayer(Vector2 startPosition)
@@ -25,33 +26,34 @@ void UpdatePlayer(
     int screenHeight
 )
 {
-    // 화면 크기는 다음 단계의 경계 제한에 사용 예정
     (void)screenWidth;
     (void)screenHeight;
 
-    // W: 위쪽 이동
-    if (IsKeyDown(KEY_W))
+    // 이동 방향
+    Vector2 direction = { 0.0f, 0.0f };
+
+    // 키보드 입력
+    if (IsKeyDown(KEY_W)) direction.y -= 1.0f;
+    if (IsKeyDown(KEY_S)) direction.y += 1.0f;
+    if (IsKeyDown(KEY_A)) direction.x -= 1.0f;
+    if (IsKeyDown(KEY_D)) direction.x += 1.0f;
+
+    // 이동 방향의 길이 계산
+    float length = std::sqrt(
+        direction.x * direction.x +
+        direction.y * direction.y
+    );
+
+    // 대각선 이동 속도 보정
+    if (length > 0.0f)
     {
-        player.position.y -= player.speed * deltaTime;
+        direction.x /= length;
+        direction.y /= length;
     }
 
-    // S: 아래쪽 이동
-    if (IsKeyDown(KEY_S))
-    {
-        player.position.y += player.speed * deltaTime;
-    }
-
-    // A: 왼쪽 이동
-    if (IsKeyDown(KEY_A))
-    {
-        player.position.x -= player.speed * deltaTime;
-    }
-
-    // D: 오른쪽 이동
-    if (IsKeyDown(KEY_D))
-    {
-        player.position.x += player.speed * deltaTime;
-    }
+    // 플레이어 위치 갱신
+    player.position.x += direction.x * player.speed * deltaTime;
+    player.position.y += direction.y * player.speed * deltaTime;
 }
 
 // 플레이어 그리기
