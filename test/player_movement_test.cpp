@@ -23,18 +23,28 @@ int main()
     });
 
     // 게임 반복문
-    while (!WindowShouldClose())
-    {
-        BeginDrawing();
+   while (!WindowShouldClose())
+{
+    // 프레임 간 시간 계산
+    float deltaTime = GetFrameTime();
 
-        // 검은색 배경
-        ClearBackground(BLACK);
+    // 플레이어 이동 업데이트
+    UpdatePlayer(
+        player,
+        deltaTime,
+        screenWidth,
+        screenHeight
+    );
 
-        // 플레이어 그리기
-        DrawPlayer(player);
+    BeginDrawing();
 
-        EndDrawing();
-    }
+    ClearBackground(BLACK);
+
+    // 플레이어 그리기
+    DrawPlayer(player);
+
+    EndDrawing();
+}
 
     // 게임 창 종료
     CloseWindow();

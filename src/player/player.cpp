@@ -17,6 +17,43 @@ Player CreatePlayer(Vector2 startPosition)
     return player;
 }
 
+// 플레이어 이동
+void UpdatePlayer(
+    Player& player,
+    float deltaTime,
+    int screenWidth,
+    int screenHeight
+)
+{
+    // 화면 크기는 다음 단계의 경계 제한에 사용 예정
+    (void)screenWidth;
+    (void)screenHeight;
+
+    // W: 위쪽 이동
+    if (IsKeyDown(KEY_W))
+    {
+        player.position.y -= player.speed * deltaTime;
+    }
+
+    // S: 아래쪽 이동
+    if (IsKeyDown(KEY_S))
+    {
+        player.position.y += player.speed * deltaTime;
+    }
+
+    // A: 왼쪽 이동
+    if (IsKeyDown(KEY_A))
+    {
+        player.position.x -= player.speed * deltaTime;
+    }
+
+    // D: 오른쪽 이동
+    if (IsKeyDown(KEY_D))
+    {
+        player.position.x += player.speed * deltaTime;
+    }
+}
+
 // 플레이어 그리기
 void DrawPlayer(const Player& player)
 {
