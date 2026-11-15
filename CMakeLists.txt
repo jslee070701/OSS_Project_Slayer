@@ -1,4 +1,3 @@
-
 cmake_minimum_required(VERSION 3.22)
 
 project(OSS_Project_Slayer LANGUAGES C CXX)
@@ -27,18 +26,39 @@ file(GLOB_RECURSE GAME_SOURCES CONFIGURE_DEPENDS
     "${CMAKE_CURRENT_SOURCE_DIR}/src/*.cpp"
 )
 
-# 실행 파일 생성
+# 기존 게임 실행 파일 생성
 add_executable(OSS_Project_Slayer ${GAME_SOURCES})
 
-# 헤더 파일 경로
+# 기존 게임 헤더 파일 경로
 target_include_directories(OSS_Project_Slayer PRIVATE
     "${CMAKE_CURRENT_SOURCE_DIR}/include"
 )
 
-# raylib 연결
+# 기존 게임에 raylib 연결
 target_link_libraries(OSS_Project_Slayer PRIVATE raylib)
+
+# 플레이어 이동 테스트 프로그램
+add_executable(
+    PlayerMovementTest
+    test/player_movement_test.cpp
+    src/player/player.cpp
+)
+
+# 테스트 프로그램 헤더 파일 경로
+target_include_directories(
+    PlayerMovementTest
+    PRIVATE
+    "${CMAKE_CURRENT_SOURCE_DIR}/include"
+)
+
+# 테스트 프로그램에 raylib 연결
+target_link_libraries(
+    PlayerMovementTest
+    PRIVATE raylib
+)
 
 # 컴파일 옵션
 if(MSVC)
     target_compile_options(OSS_Project_Slayer PRIVATE /W4 /utf-8)
+    target_compile_options(PlayerMovementTest PRIVATE /W4 /utf-8)
 endif()
