@@ -19,6 +19,7 @@ Player CreatePlayer(Vector2 startPosition)
 }
 
 // 플레이어 이동
+// 플레이어 이동
 void UpdatePlayer(
     Player& player,
     float deltaTime,
@@ -26,9 +27,6 @@ void UpdatePlayer(
     int screenHeight
 )
 {
-    (void)screenWidth;
-    (void)screenHeight;
-
     // 이동 방향
     Vector2 direction = { 0.0f, 0.0f };
 
@@ -54,6 +52,19 @@ void UpdatePlayer(
     // 플레이어 위치 갱신
     player.position.x += direction.x * player.speed * deltaTime;
     player.position.y += direction.y * player.speed * deltaTime;
+
+    // 화면 경계 제한
+    if (player.position.x < player.radius)
+        player.position.x = player.radius;
+
+    if (player.position.x > screenWidth - player.radius)
+        player.position.x = screenWidth - player.radius;
+
+    if (player.position.y < player.radius)
+        player.position.y = player.radius;
+
+    if (player.position.y > screenHeight - player.radius)
+        player.position.y = screenHeight - player.radius;
 }
 
 // 플레이어 그리기
