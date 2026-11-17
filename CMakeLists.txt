@@ -62,3 +62,21 @@ if(MSVC)
     target_compile_options(OSS_Project_Slayer PRIVATE /W4 /utf-8)
     target_compile_options(PlayerMovementTest PRIVATE /W4 /utf-8)
 endif()
+
+# 패시브 아이템 테스트
+add_executable(
+    PassiveItemsTest
+    test/passive_items_test.cpp
+    src/items/passive_items.cpp
+)
+
+target_include_directories(
+    PassiveItemsTest PRIVATE
+    "${CMAKE_CURRENT_SOURCE_DIR}/include"
+)
+
+target_link_libraries(PassiveItemsTest PRIVATE raylib)
+
+if(MSVC)
+    target_compile_options(PassiveItemsTest PRIVATE /W4 /utf-8)
+endif()
