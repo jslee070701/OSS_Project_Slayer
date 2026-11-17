@@ -195,6 +195,124 @@ int main()
     ApplyMealHealing(player.hp);
     Check(NearlyEqual(player.hp, 100.0f), "Meal: HP stays at 100");
 
+        // 학식 드롭 및 충돌 획득 테스트
+    MealDropSystem meals{};
+
+    const Vector2 firstPosition = { 100.0f, 100.0f };
+    const Vector2 secondPosition = { 300.0f, 300.0f };
+
+    // 확률 판정 경계 및 잘못된 입력 확인
+    Check(
+        !TryDropMeal(meals, firstPosition, 0),
+        "Invalid roll 0 rejected"
+    );
+
+    Check(
+        !TryDropMeal(meals, firstPosition, 11),
+        "Roll 11: no meal dropped"
+    );
+
+    Check(
+        !TryDropMeal(meals, firstPosition, 100),
+        "Roll 100: no meal dropped"
+    );
+
+    Check(
+        !TryDropMeal(meals, firstPosition, 101),
+        "Invalid roll 101 rejected"
+    );
+
+    // 두 개까지 드롭 가능
+    Check(
+        TryDropMeal(meals, firstPosition, 1),
+        "Roll 1: first meal dropped"
+    );
+
+    Check(
+        NearlyEqual(meals.drops[0].position.x, firstPosition.x) &&
+        NearlyEqual(meals.drops[0].position.y, firstPosition.y),
+        "Meal appears at enemy position"
+    );
+
+    Check(
+        TryDropMeal(meals, secondPosition, 10),
+        "Roll 10: second meal dropped"
+    );
+
+    Check(
+        !TryDropMeal(meals, firstPosition, 5),
+        "Third meal rejected: two-drop limit"
+    );
+
+    // 멀리 떨어진 플레이어는 획득하지 않음
+    player.hp = 70.0f;
+
+    Check(
+        CollectMeals(
+            meals, Vector2{ 600.0f, 600.0f }, 20.0f, player.hp
+        ) == 0 &&
+        NearlyEqual(player.hp, 70.0f),
+        "Distant player: no pickup or healing"
+    );
+
+    // 첫 번째 학식 획득 후 제거
+    Check(
+        CollectMeals(meals, firstPosition, 20.0f, player.hp) == 1 &&
+        NearlyEqual(player.hp, 90.0f) &&
+        !meals.drops[0].active &&
+        meals.drops[1].active,
+        "First pickup: HP 70 -> 90, meal removed"
+    );
+
+    Check(
+        CollectMeals(meals, firstPosition, 20.0f, player.hp) == 0 &&
+        NearlyEqual(player.hp, 90.0f),
+        "Collected meal cannot heal twice"
+    );
+
+    // 두 번째 학식은 최대 HP까지만 회복
+    Check(
+        CollectMeals(meals, secondPosition, 20.0f, player.hp) == 1 &&
+        NearlyEqual(player.hp, 100.0f) &&
+        !meals.drops[1].active,
+        "Second pickup: HP capped at 100"
+    );
+
+    // 획득 후 비워진 슬롯 재사용
+    Check(
+        TryDropMeal(meals, firstPosition, 5),
+        "Empty meal slot can be reused"
+    );
+
+    Check(
+        CollectMeals(meals, firstPosition, 20.0f, player.hp) == 1 &&
+        NearlyEqual(player.hp, 100.0f),
+        "Full HP: meal consumed without overhealing"
+    );
+
+    // 원의 중심이 달라도 충돌 범위가 겹치면 획득
+    TryDropMeal(meals, firstPosition, 1);
+    player.hp = 50.0f;
+
+    Check(
+        CollectMeals(
+            meals, Vector2{ 125.0f, 100.0f }, 20.0f, player.hp
+        ) == 1 &&
+        NearlyEqual(player.hp, 70.0f),
+        "Overlapping circles trigger pickup"
+    );
+
+    // 사망한 플레이어는 학식으로 부활하지 않음
+    TryDropMeal(meals, firstPosition, 1);
+    player.hp = 0.0f;
+
+    Check(
+        CollectMeals(meals, firstPosition, 20.0f, player.hp) == 0 &&
+        NearlyEqual(player.hp, 0.0f) &&
+        meals.drops[0].active,
+        "Dead player cannot collect meals"
+    );
+
     std::cout << "\nPassed: " << passed
               << "\nFailed: " << failed << '\n';
 

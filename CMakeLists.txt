@@ -80,3 +80,21 @@ target_link_libraries(PassiveItemsTest PRIVATE raylib)
 if(MSVC)
     target_compile_options(PassiveItemsTest PRIVATE /W4 /utf-8)
 endif()
+
+# 패시브 아이템 시각 테스트 프로그램
+add_executable(
+    PassiveItemsVisualTest
+    test/passive_items_visual_test.cpp
+    src/items/passive_items.cpp
+)
+
+target_include_directories(
+    PassiveItemsVisualTest PRIVATE
+    "${CMAKE_CURRENT_SOURCE_DIR}/include"
+)
+
+target_link_libraries(PassiveItemsVisualTest PRIVATE raylib)
+
+if(MSVC)
+    target_compile_options(PassiveItemsVisualTest PRIVATE /W4 /utf-8)
+endif()
