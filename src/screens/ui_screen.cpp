@@ -149,3 +149,30 @@ void DrawLeaderboardScreen(bool *backToMain, const char *playerName, const char 
         *backToMain = true;
     }
 }
+
+// 4. 게임 화면
+void DrawGameScreen(bool *isPaused, const char *playerName) {
+    ClearBackground(DARKGRAY);
+
+    DrawRectangle(GetScreenWidth() / 2 - 250, 20, 500, 20, LIGHTGRAY);
+    DrawRectangle(GetScreenWidth() / 2 - 250, 20, 250, 20, GREEN);
+    DrawText("EXP", GetScreenWidth() / 2 - 280, 20, 16, WHITE);
+
+    DrawText("Stage: Midterm 5 Weeks Before", GetScreenWidth() / 2 - 120, 45, 16, YELLOW);
+    DrawText(TextFormat("Player: %s", playerName[0] != '\0' ? playerName : "Player1"), 20, 20, 18, WHITE);
+
+    Rectangle pauseBtn = { 20, 48, 80, 30 };
+    Vector2 mousePos = GetMousePosition();
+    bool btnHover = CheckCollisionPointRec(mousePos, pauseBtn);
+    DrawRectangleRec(pauseBtn, btnHover ? GRAY : LIGHTGRAY);
+    DrawText("Pause", (int)pauseBtn.x + 15, (int)pauseBtn.y + 5, 16, BLACK);
+
+    if (btnHover && IsMouseButtonPressed(MOUSE_BUTTON_LEFT)) {
+        *isPaused = !(*isPaused);
+    }
+
+    DrawText("Monsters Defeated: 12", GetScreenWidth() - 220, 20, 18, YELLOW);
+
+    DrawCircle(GetScreenWidth() / 2, GetScreenHeight() / 2, 20, BLUE);
+    DrawRectangle(GetScreenWidth() / 2 - 25, GetScreenHeight() / 2 + 25, 50, 10, RED);
+}
