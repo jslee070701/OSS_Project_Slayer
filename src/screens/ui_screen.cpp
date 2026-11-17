@@ -176,3 +176,31 @@ void DrawGameScreen(bool *isPaused, const char *playerName) {
     DrawCircle(GetScreenWidth() / 2, GetScreenHeight() / 2, 20, BLUE);
     DrawRectangle(GetScreenWidth() / 2 - 25, GetScreenHeight() / 2 + 25, 50, 10, RED);
 }
+
+// 5. 결과 화면
+void DrawResultScreen(bool *isClear, bool *backToMain, const char *playerName, const char *clearedStage, int monstersDefeated) {
+    ClearBackground(Color{ 20, 24, 33, 255 });
+
+    if (*isClear) {
+        DrawText("GAME CLEAR", GetScreenWidth() / 2 - 120, 140, 40, GREEN);
+    } else {
+        DrawText("GAME OVER", GetScreenWidth() / 2 - 110, 140, 40, RED);
+    }
+
+    DrawRectangle(GetScreenWidth() / 2 - 220, 210, 440, 160, Color{ 30, 35, 45, 255 });
+    DrawRectangleLines(GetScreenWidth() / 2 - 220, 210, 440, 160, DARKGRAY);
+
+    DrawText(TextFormat("Player Name: %s", playerName[0] != '\0' ? playerName : "Player1"), GetScreenWidth() / 2 - 190, 235, 18, WHITE);
+    DrawText(TextFormat("Cleared Stage: %s", clearedStage), GetScreenWidth() / 2 - 190, 270, 18, LIGHTGRAY);
+    DrawText(TextFormat("Monsters Defeated: %d", monstersDefeated), GetScreenWidth() / 2 - 190, 305, 18, YELLOW);
+
+    Rectangle backBtn = { (float)(GetScreenWidth() / 2 - 75), 410, 150, 40 };
+    Vector2 mousePos = GetMousePosition();
+    bool btnHover = CheckCollisionPointRec(mousePos, backBtn);
+    DrawRectangleRec(backBtn, btnHover ? DARKBLUE : Color{ 30, 100, 200, 255 });
+    DrawText("Main Menu", (int)backBtn.x + 30, (int)backBtn.y + 10, 18, WHITE);
+
+    if (btnHover && IsMouseButtonPressed(MOUSE_BUTTON_LEFT)) {
+        *backToMain = true;
+    }
+}
