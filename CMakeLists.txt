@@ -62,3 +62,19 @@ if(MSVC)
     target_compile_options(OSS_Project_Slayer PRIVATE /W4 /utf-8)
     target_compile_options(PlayerMovementTest PRIVATE /W4 /utf-8)
 endif()
+
+# 몬스터 모듈 단독 테스트 실행 파일
+add_executable(monster_test
+    "${CMAKE_CURRENT_SOURCE_DIR}/test/monster_test.cpp"
+    "${CMAKE_CURRENT_SOURCE_DIR}/src/monsters/monster.cpp"
+)
+
+target_include_directories(monster_test PRIVATE
+    "${CMAKE_CURRENT_SOURCE_DIR}/include"
+)
+
+target_link_libraries(monster_test PRIVATE raylib)
+
+if(MSVC)
+    target_compile_options(monster_test PRIVATE /W4 /utf-8)
+endif()
