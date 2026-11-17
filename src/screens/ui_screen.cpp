@@ -79,3 +79,73 @@ void DrawNameInputScreen(char *nameBuffer, int maxInputLength, bool *isInputComp
         }
     }
 }
+
+// 2. 메인 화면
+void DrawMainScreen(int *selectedMenu, const char *playerName) {
+    ClearBackground(Color{ 25, 30, 40, 255 });
+
+    DrawText(TextFormat("Player: %s", playerName[0] != '\0' ? playerName : "None"), 20, 20, 18, GOLD);
+    DrawText("EXAM SEASON SURVIVORS", GetScreenWidth() / 2 - 210, 120, 30, RAYWHITE);
+
+    Rectangle startBtn = { (float)(GetScreenWidth() / 2 - 110), 220, 220, 50 };
+    Rectangle rankBtn  = { (float)(GetScreenWidth() / 2 - 110), 290, 220, 50 };
+    Rectangle exitBtn  = { (float)(GetScreenWidth() / 2 - 110), 360, 220, 50 };
+
+    Vector2 mousePos = GetMousePosition();
+
+    bool startHover = CheckCollisionPointRec(mousePos, startBtn);
+    DrawRectangleRec(startBtn, startHover ? Color{ 0, 160, 80, 255 } : Color{ 0, 120, 60, 255 });
+    DrawText("Start Survival", (int)startBtn.x + 35, (int)startBtn.y + 15, 18, WHITE);
+    if (startHover && IsMouseButtonPressed(MOUSE_BUTTON_LEFT)) {
+        *selectedMenu = 1;
+    }
+
+    bool rankHover = CheckCollisionPointRec(mousePos, rankBtn);
+    DrawRectangleRec(rankBtn, rankHover ? Color{ 200, 130, 0, 255 } : Color{ 180, 100, 0, 255 });
+    DrawText("Leaderboard", (int)rankBtn.x + 45, (int)rankBtn.y + 15, 18, WHITE);
+    if (rankHover && IsMouseButtonPressed(MOUSE_BUTTON_LEFT)) {
+        *selectedMenu = 2;
+    }
+
+    bool exitHover = CheckCollisionPointRec(mousePos, exitBtn);
+    DrawRectangleRec(exitBtn, exitHover ? Color{ 180, 40, 40, 255 } : Color{ 140, 30, 30, 255 });
+    DrawText("Give Up (Exit)", (int)exitHover ? (int)exitBtn.x + 48 : (int)exitBtn.x + 48, (int)exitBtn.y + 15, 18, WHITE);
+    if (exitHover && IsMouseButtonPressed(MOUSE_BUTTON_LEFT)) {
+        *selectedMenu = 3;
+    }
+}
+
+// 3. 리더보드 화면
+void DrawLeaderboardScreen(bool *backToMain, const char *playerName, const char *clearedStage, int monstersDefeated) {
+    ClearBackground(Color{ 20, 24, 33, 255 });
+
+    DrawText("HALL OF SURVIVORS", GetScreenWidth() / 2 - 130, 50, 26, GOLD);
+
+    DrawRectangle(100, 110, 1080, 40, Color{ 35, 40, 50, 255 });
+    DrawText("Rank", 130, 122, 16, LIGHTGRAY);
+    DrawText("Player Name", 260, 122, 16, LIGHTGRAY);
+    DrawText("Cleared Stage", 560, 122, 16, LIGHTGRAY);
+    DrawText("Monsters Defeated", 860, 122, 16, LIGHTGRAY);
+
+    DrawRectangle(100, 160, 1080, 45, Color{ 30, 35, 45, 255 });
+    DrawText("1", 130, 175, 16, YELLOW);
+    DrawText(playerName[0] != '\0' ? playerName : "player1", 260, 175, 16, WHITE);
+    DrawText(clearedStage, 560, 175, 16, GREEN);
+    DrawText(TextFormat("%d", monstersDefeated), 860, 175, 16, WHITE);
+
+    DrawRectangle(100, 215, 1080, 45, Color{ 30, 35, 45, 255 });
+    DrawText("2", 130, 230, 16, LIGHTGRAY);
+    DrawText("player2", 260, 230, 16, WHITE);
+    DrawText("Midterm 1 Weeks Before", 560, 230, 16, LIGHTGRAY);
+    DrawText("30", 860, 230, 16, LIGHTGRAY);
+
+    Rectangle backBtn = { (float)(GetScreenWidth() / 2 - 75), 560, 150, 40 };
+    Vector2 mousePos = GetMousePosition();
+    bool btnHover = CheckCollisionPointRec(mousePos, backBtn);
+    DrawRectangleRec(backBtn, btnHover ? DARKGRAY : Color{ 60, 65, 75, 255 });
+    DrawText("Back", (int)backBtn.x + 55, (int)backBtn.y + 10, 20, WHITE);
+
+    if (btnHover && IsMouseButtonPressed(MOUSE_BUTTON_LEFT)) {
+        *backToMain = true;
+    }
+}
