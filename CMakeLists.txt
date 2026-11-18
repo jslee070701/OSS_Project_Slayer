@@ -63,6 +63,7 @@ if(MSVC)
     target_compile_options(PlayerMovementTest PRIVATE /W4 /utf-8)
 endif()
 
+
 # 패시브 아이템 테스트
 add_executable(
     PassiveItemsTest
@@ -76,10 +77,6 @@ target_include_directories(
 )
 
 target_link_libraries(PassiveItemsTest PRIVATE raylib)
-
-if(MSVC)
-    target_compile_options(PassiveItemsTest PRIVATE /W4 /utf-8)
-endif()
 
 # 패시브 아이템 시각 테스트 프로그램
 add_executable(
@@ -95,6 +92,33 @@ target_include_directories(
 
 target_link_libraries(PassiveItemsVisualTest PRIVATE raylib)
 
+# 패시브 아이템 테스트 컴파일 옵션
 if(MSVC)
+    target_compile_options(PassiveItemsTest PRIVATE /W4 /utf-8)
     target_compile_options(PassiveItemsVisualTest PRIVATE /W4 /utf-8)
+endif()
+
+# UI 화면 테스트 프로그램
+add_executable(
+    UIScreenTest
+    test/ui_screen_test.cpp
+    src/screens/ui_screen.cpp
+)
+
+target_include_directories(
+    UIScreenTest
+    PRIVATE
+    "${CMAKE_CURRENT_SOURCE_DIR}/include"
+)
+
+target_link_libraries(
+    UIScreenTest
+    PRIVATE raylib
+)
+
+# UI 화면 테스트 컴파일 옵션
+if(MSVC)
+    target_compile_options(UIScreenTest PRIVATE /W4 /utf-8)
+endif()
+
 endif()
