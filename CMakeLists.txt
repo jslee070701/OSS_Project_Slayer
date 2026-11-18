@@ -62,3 +62,25 @@ if(MSVC)
     target_compile_options(OSS_Project_Slayer PRIVATE /W4 /utf-8)
     target_compile_options(PlayerMovementTest PRIVATE /W4 /utf-8)
 endif()
+
+# UI 화면 테스트 프로그램
+add_executable(
+    UIScreenTest
+    test/ui_screen_test.cpp
+    src/screens/ui_screen.cpp
+)
+
+target_include_directories(
+    UIScreenTest
+    PRIVATE
+    "${CMAKE_CURRENT_SOURCE_DIR}/include"
+)
+
+target_link_libraries(
+    UIScreenTest
+    PRIVATE raylib
+)
+
+if(MSVC)
+    target_compile_options(UIScreenTest PRIVATE /W4 /utf-8)
+endif()
