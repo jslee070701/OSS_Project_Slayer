@@ -68,6 +68,7 @@ endif()
 add_executable(monster_test
     "${CMAKE_CURRENT_SOURCE_DIR}/test/monster_test.cpp"
     "${CMAKE_CURRENT_SOURCE_DIR}/src/monsters/monster.cpp"
+    "${CMAKE_CURRENT_SOURCE_DIR}/src/monsters/combat.cpp"
 )
 
 target_include_directories(monster_test PRIVATE
@@ -140,6 +141,4 @@ target_link_libraries(
 # UI 화면 테스트 컴파일 옵션
 if(MSVC)
     target_compile_options(UIScreenTest PRIVATE /W4 /utf-8)
-endif()
-
 endif()
