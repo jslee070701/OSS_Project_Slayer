@@ -53,3 +53,25 @@ void InitApp(App& app, int screenWidth, int screenHeight)
 
     ResetGame(app);
 }
+
+// 메인 메뉴 선택 처리
+static void UpdateMainMenu(App& app)
+{
+    if (app.selectedMenu == 1)
+    {
+        ResetGame(app);
+        app.currentScreen = APP_SCREEN_GAME;
+        app.selectedMenu = 0;
+    }
+    else if (app.selectedMenu == 2)
+    {
+        app.currentScreen = APP_SCREEN_LEADERBOARD;
+        app.backToMain = false;
+        app.selectedMenu = 0;
+    }
+    else if (app.selectedMenu == 3)
+    {
+        SetWindowShouldClose(true);
+        app.selectedMenu = 0;
+    }
+}
