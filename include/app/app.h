@@ -65,6 +65,7 @@ struct App
     // 게임 상태
     bool isPaused;
     bool isClear;
+    bool shouldExit;
 
     // 몬스터 생성 시간
     float spawnTimer;

@@ -71,7 +71,7 @@ static void UpdateMainMenu(App& app)
     }
     else if (app.selectedMenu == 3)
     {
-        SetWindowShouldClose(true);
+        app.shouldExit = true;
         app.selectedMenu = 0;
     }
 }
