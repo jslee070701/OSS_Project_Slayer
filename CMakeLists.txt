@@ -142,3 +142,29 @@ target_link_libraries(
 if(MSVC)
     target_compile_options(UIScreenTest PRIVATE /W4 /utf-8)
 endif()
+
+# App 통합 테스트
+add_executable(
+    AppTest
+    test/app_test.cpp
+    src/app/app.cpp
+    src/screens/ui_screen.cpp
+    src/player/player.cpp
+    src/monsters/monster.cpp
+    src/monsters/combat.cpp
+    src/items/passive_items.cpp
+)
+
+target_include_directories(
+    AppTest PRIVATE
+    ${CMAKE_CURRENT_SOURCE_DIR}/include
+)
+
+target_link_libraries(
+    AppTest PRIVATE
+    raylib
+)
+
+if(MSVC)
+    target_compile_options(AppTest PRIVATE /W4 /utf-8)
+endif()
