@@ -75,3 +75,100 @@ static void UpdateMainMenu(App& app)
         app.selectedMenu = 0;
     }
 }
+
+// 투사체 생성
+static void SpawnProjectile(App& app)
+{
+    if (!IsMouseButtonPressed(MOUSE_BUTTON_LEFT))
+        return;
+
+    Vector2 mousePosition = GetMousePosition();
+
+    float dx = mousePosition.x - app.player.position.x;
+    float dy = mousePosition.y - app.player.position.y;
+
+    float distance = std::sqrt(dx * dx + dy * dy);
+
+    if (distance <= 0.0f)
+        return;
+
+    for (int i = 0; i < MAX_PROJECTILES; ++i)
+    {
+        if (!app.projectiles[i].active)
+        {
+            float damage = passive_items::CalculateDamage(
+                20.0f,
+                app.inventory
+            );
+
+            app.projectiles[i].position = app.player.position;
+
+            app.projectiles[i].velocity = {
+                (dx / distance) * 450.0f,
+                (dy / distance) * 450.0f
+            };
+
+            app.projectiles[i].radius = 6.0f;
+            app.projectiles[i].damage = damage;
+            app.projectiles[i].active = true;
+
+            break;
+        }
+    }
+}
+
+// 투사체 업데이트 및 몬스터 공격
+static void UpdateProjectiles(App& app, float deltaTime)
+{
+    for (int i = 0; i < MAX_PROJECTILES; ++i)
+    {
+        AppProjectile& projectile = app.projectiles[i];
+
+        if (!projectile.active)
+            continue;
+
+        projectile.position.x += projectile.velocity.x * deltaTime;
+        projectile.position.y += projectile.velocity.y * deltaTime;
+
+        // 화면 밖으로 나간 투사체 제거
+        if (
+            projectile.position.x < 0 ||
+            projectile.position.x > app.screenWidth ||
+            projectile.position.y < 0 ||
+            projectile.position.y > app.screenHeight
+        )
+        {
+            projectile.active = false;
+            continue;
+        }
+
+        MonsterHitResult hitResult = ResolveProjectileMonsterCombat(
+            app.monsters,
+            projectile.position,
+            projectile.radius,
+            projectile.damage
+        );
+
+        if (hitResult.hit)
+        {
+            projectile.active = false;
+
+            if (hitResult.killed)
+            {
+                app.defeatedCount++;
+
+                float gainedExp = passive_items::CalculateExperience(
+                    static_cast<float>(hitResult.expReward),
+                    app.inventory
+                );
+
+                app.playerExp += static_cast<int>(gainedExp + 0.5f);
+
+                passive_items::OnEnemyDefeated(
+                    app.meals,
+                    hitResult.position
+                );
+            }
+        }
+    }
+}
