@@ -5,6 +5,9 @@
 #include "player/player.h"
 #include "monsters/monster.h"
 #include "items/passive_items.h"
+#include "items/passive_items.h"
+
+#define MAX_PROJECTILES 20
 
 // 화면 상태
 enum AppScreen
@@ -16,26 +19,48 @@ enum AppScreen
     APP_SCREEN_RESULT
 };
 
+// App에서 관리하는 투사체
+struct AppProjectile
+{
+    Vector2 position;
+    Vector2 velocity;
+    float radius;
+    float damage;
+    bool active;
+};
+
 // 게임 상태
 struct App
 {
     // 화면 정보
     AppScreen currentScreen;
+    int screenWidth;
+    int screenHeight;
+
+    // 화면 전환 상태
+    bool isInputComplete;
+    int selectedMenu;
+    bool backToMain;
 
     // 플레이어 정보
     char playerName[16];
     Player player;
 
-    // 게임 진행 정보
-    Monster monsters[MAX_MONSTERS];
-    passive_items::Inventory inventory;
-    passive_items::MealDropSystem meals;
-
-    // 플레이어 게임 데이터
+    // 게임 진행 데이터
     float playerHp;
     int playerExp;
     int defeatedCount;
     int currentStage;
+
+    // 몬스터
+    Monster monsters[MAX_MONSTERS];
+
+    // 투사체
+    AppProjectile projectiles[MAX_PROJECTILES];
+
+    // 패시브 아이템
+    passive_items::Inventory inventory;
+    passive_items::MealDropSystem meals;
 
     // 게임 상태
     bool isPaused;
