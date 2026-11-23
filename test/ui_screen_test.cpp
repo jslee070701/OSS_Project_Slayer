@@ -75,8 +75,9 @@ int main()
 
             case 4:
                 DrawGameScreen(
-                    &isPaused,
-                    playerName
+                    playerName,
+                    0,
+                    1
                 );
                 break;
 

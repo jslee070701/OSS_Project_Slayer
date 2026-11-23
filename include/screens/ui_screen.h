@@ -6,7 +6,7 @@
 void DrawNameInputScreen(char *nameBuffer, int maxInputLength, bool *isInputComplete);
 void DrawMainScreen(int *selectedMenu, const char *playerName);
 void DrawLeaderboardScreen(bool *backToMain, const char *playerName, const char *clearedStage, int monstersDefeated);
-void DrawGameScreen(bool *isPaused, const char *playerName);
+void DrawGameScreen(const char *playerName, int playerExp, int currentStage);
 void DrawResultScreen(bool *isClear, bool *backToMain, const char *playerName, const char *clearedStage, int monstersDefeated);
 
 #endif

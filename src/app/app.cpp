@@ -164,6 +164,12 @@ static void UpdateProjectiles(App& app, float deltaTime)
 
                 app.playerExp += static_cast<int>(gainedExp + 0.5f);
 
+                while (app.playerExp >= 100)
+                {
+                    app.playerExp -= 100;
+                    app.currentStage++;
+                }
+
                 passive_items::OnEnemyDefeated(
                     app.meals,
                     hitResult.position
@@ -176,16 +182,6 @@ static void UpdateProjectiles(App& app, float deltaTime)
 // 게임 진행 업데이트
 static void UpdateGame(App& app, float deltaTime)
 {
-    // 일시정지 중에는 게임 로직을 진행하지 않음
-    if (app.isPaused)
-        return;
-
-    // 테스트용 스테이지 증가
-    if (IsKeyPressed(KEY_E))
-    {
-        app.currentStage++;
-    }
-
     // 플레이어 이동
     UpdatePlayer(
         app.player,
@@ -332,6 +328,31 @@ static void DrawGameObjects(const App& app)
     // 플레이어 출력
     DrawPlayer(app.player);
 
+    // 플레이어 HP 바
+    float hpRatio = app.playerHp / 100.0f;
+    
+    if (hpRatio < 0.0f) hpRatio = 0.0f;
+    if (hpRatio > 1.0f) hpRatio = 1.0f;
+    
+    float hpBarWidth = 50.0f;
+    float hpBarHeight = 6.0f;
+    
+    DrawRectangle(
+        (int)(app.player.position.x - hpBarWidth / 2),
+        (int)(app.player.position.y + app.player.radius + 6),
+        (int)hpBarWidth,
+        (int)hpBarHeight,
+        WHITE
+    );
+    
+    DrawRectangle(
+        (int)(app.player.position.x - hpBarWidth / 2),
+        (int)(app.player.position.y + app.player.radius + 6),
+        (int)(hpBarWidth * hpRatio),
+        (int)hpBarHeight,
+        RED
+    );
+
     // App에서 관리하는 게임 정보 출력
     DrawText(
         TextFormat(
@@ -398,8 +419,9 @@ void DrawApp(App& app)
 
             // UI 함수가 배경을 지우므로 게임 오브젝트보다 먼저 호출
             DrawGameScreen(
-                &app.isPaused,
-                app.playerName
+                app.playerName,
+                app.playerExp,
+                app.currentStage
             );
 
             DrawGameObjects(app);
