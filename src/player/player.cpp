@@ -76,3 +76,21 @@ void DrawPlayer(const Player& player)
         BLUE
     );
 }
+
+// 플레이어 피해 및 사망 처리
+void DamagePlayer(Player& player, float damage)
+{
+    // 사망한 플레이어 또는 유효하지 않은 피해량 무시
+    if (!player.isAlive || damage <= 0.0f)
+        return;
+
+    // 체력 감소
+    player.hp -= damage;
+
+    // 체력이 0 이하가 되면 사망 처리
+    if (player.hp <= 0.0f)
+    {
+        player.hp = 0.0f;
+        player.isAlive = false;
+    }
+}

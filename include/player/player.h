@@ -38,3 +38,6 @@ void UpdatePlayer(
 
 // 플레이어 그리기
 void DrawPlayer(const Player& player);
+
+// 플레이어 피해 및 사망 처리
+void DamagePlayer(Player& player, float damage);
