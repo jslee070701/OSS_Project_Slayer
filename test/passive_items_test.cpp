@@ -2,6 +2,7 @@
 
 #include <cmath>
 #include <iostream>
+#include <string>
 
 namespace
 {
@@ -311,6 +312,70 @@ int main()
         NearlyEqual(player.hp, 0.0f) &&
         meals.drops[0].active,
         "Dead player cannot collect meals"
+    );
+
+    // ITEM_001 레벨업 아이템 지급
+    Inventory rewardInventory{};
+    float rewardHp = 50.0f;
+
+    LevelUpReward reward = GrantLevelUpReward(
+        rewardInventory, rewardHp, 2, 0
+    );
+    Check(
+        reward.kind == RewardKind::Item &&
+        reward.item == ItemType::Coffee &&
+        rewardInventory.coffeeCount == 1,
+        "Level up: pick 0 gives one coffee"
+    );
+
+    // 커피를 최대 개수로 채우면 후보에서 제외
+    rewardInventory.coffeeCount = MAX_ITEM_COUNT;
+    reward = GrantLevelUpReward(rewardInventory, rewardHp, 3, 0);
+    Check(
+        reward.kind == RewardKind::Item &&
+        reward.item == ItemType::Highlighter &&
+        rewardInventory.coffeeCount == MAX_ITEM_COUNT,
+        "Level up: maxed coffee is skipped"
+    );
+
+    // 모든 아이템이 최대 개수면 학식 즉시 지급
+    rewardInventory.highlighterCount = MAX_ITEM_COUNT;
+    rewardInventory.pastExamCount = MAX_ITEM_COUNT;
+    reward = GrantLevelUpReward(rewardInventory, rewardHp, 4, 0);
+    Check(
+        reward.kind == RewardKind::Meal &&
+        NearlyEqual(rewardHp, 70.0f),
+        "Level up: all items maxed -> meal heals 50 -> 70"
+    );
+
+    // 레벨 13이면 지급 없음
+    Inventory level13Inventory{};
+    float level13Hp = 50.0f;
+    reward = GrantLevelUpReward(level13Inventory, level13Hp, 13, 0);
+    Check(
+        reward.kind == RewardKind::None &&
+        level13Inventory.coffeeCount == 0 &&
+        NearlyEqual(level13Hp, 50.0f),
+        "Level 13: no item given"
+    );
+
+    // 화면 중앙 문구
+    Inventory textInventory{};
+    float textHp = 100.0f;
+    RewardMessage rewardMessage{};
+
+    reward = GrantLevelUpReward(textInventory, textHp, 2, 2);
+    ShowRewardMessage(rewardMessage, reward);
+    Check(
+        std::string(rewardMessage.text) == "Past exam acquired!" &&
+        rewardMessage.timer > 0.0f,
+        "Reward message shows acquired item"
+    );
+
+    UpdateRewardMessage(rewardMessage, REWARD_MESSAGE_TIME + 0.1f);
+    Check(
+        rewardMessage.timer <= 0.0f,
+        "Reward message disappears after its time"
     );
 
     std::cout << "\nPassed: " << passed
