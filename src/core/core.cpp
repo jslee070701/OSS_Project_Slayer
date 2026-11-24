@@ -46,3 +46,31 @@ bool IsBossStage(int stageNumber)
     // 중간고사 및 기말고사 D-day 확인
     return stageNumber == 6 || stageNumber == 12;
 }
+
+// 게임 오버 상태로 변경
+void SetGameOver(GameProgress& progress)
+{
+    // 이미 게임이 종료된 경우 상태 변경 방지
+    if (progress.gameState != GameState::PLAYING)
+        return;
+
+    progress.gameState = GameState::GAME_OVER;
+}
+
+// 게임 클리어 상태로 변경
+void SetGameClear(GameProgress& progress)
+{
+    // 게임이 진행 중이고 마지막 스테이지인 경우에만 클리어 처리
+    if (progress.gameState != GameState::PLAYING ||
+        progress.currentStage != TOTAL_STAGES)
+        return;
+
+    progress.gameState = GameState::GAME_CLEAR;
+}
+
+// 게임 종료 여부 확인
+bool IsGameFinished(const GameProgress& progress)
+{
+    // 게임 진행 중이 아니면 종료 상태로 판정
+    return progress.gameState != GameState::PLAYING;
+}
