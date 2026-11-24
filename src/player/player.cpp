@@ -106,3 +106,31 @@ void DamagePlayer(Player& player, float damage)
         player.isAlive = false;
     }
 }
+
+// 플레이어 경험치 획득 및 레벨업 처리
+bool GainExperience(Player& player, int amount)
+{
+    // 사망한 플레이어 또는 유효하지 않은 경험치 무시
+    if (!player.isAlive || amount <= 0)
+        return false;
+
+    // 경험치 누적
+    player.experience += amount;
+
+    // 필요 경험치에 도달하면 레벨업
+    if (player.experience >= player.requiredExperience)
+    {
+        // 경험치 초기화
+        player.experience = 0;
+
+        // 레벨 증가
+        player.level++;
+
+        // 다음 레벨 필요 경험치 증가
+        player.requiredExperience += 10;
+
+        return true;
+    }
+
+    return false;
+}

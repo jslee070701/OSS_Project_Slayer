@@ -41,3 +41,6 @@ void DrawPlayer(const Player& player);
 
 // 플레이어 피해 및 사망 처리
 void DamagePlayer(Player& player, float damage);
+
+// 플레이어 경험치 획득 및 레벨업 처리
+bool GainExperience(Player& player, int amount);
