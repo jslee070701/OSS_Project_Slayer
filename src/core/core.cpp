@@ -26,3 +26,23 @@ const char* GetStageName(int stageNumber)
         return "잘못된 스테이지";
     }
 }
+
+// 다음 스테이지로 진행
+bool AdvanceStage(GameProgress& progress)
+{
+    // 마지막 스테이지에 도달한 경우 진행 중단
+    if (progress.currentStage >= TOTAL_STAGES)
+        return false;
+
+    // 현재 스테이지 증가
+    progress.currentStage++;
+
+    return true;
+}
+
+// 보스 스테이지 여부 확인
+bool IsBossStage(int stageNumber)
+{
+    // 중간고사 및 기말고사 D-day 확인
+    return stageNumber == 6 || stageNumber == 12;
+}

@@ -12,3 +12,9 @@ struct GameProgress
 
 // 스테이지 번호에 해당하는 이름 반환
 const char* GetStageName(int stageNumber);
+
+// 다음 스테이지로 진행
+bool AdvanceStage(GameProgress& progress);
+
+// 보스 스테이지 여부 확인
+bool IsBossStage(int stageNumber);
