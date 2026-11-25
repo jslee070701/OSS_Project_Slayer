@@ -1,3 +1,4 @@
+
 // Core 모듈 헤더 포함
 #include "core/core.h"
 
@@ -30,8 +31,9 @@ const char* GetStageName(int stageNumber)
 // 다음 스테이지로 진행
 bool AdvanceStage(GameProgress& progress)
 {
-    // 마지막 스테이지에 도달한 경우 진행 중단
-    if (progress.currentStage >= TOTAL_STAGES)
+    // 게임이 진행 중이 아니거나 마지막 스테이지에 도달한 경우 진행 중단
+    if (progress.gameState != GameState::PLAYING ||
+        progress.currentStage >= TOTAL_STAGES)
         return false;
 
     // 현재 스테이지 증가

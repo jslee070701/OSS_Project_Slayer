@@ -1,10 +1,11 @@
+
 #include "app/app.h"
 
 #include "screens/ui_screen.h"
+
 #include "monsters/combat.h"
 
 #include <cmath>
-#include <cstdio>
 
 // 게임 시작 시 상태 초기화
 static void ResetGame(App& app)
@@ -14,18 +15,16 @@ static void ResetGame(App& app)
         app.screenHeight / 2.0f
     });
 
-    app.playerHp = 100.0f;
-    app.playerExp = 0;
+    // Core 모듈의 게임 진행 상태 초기화
+    app.progress = GameProgress{};
+
     app.defeatedCount = 0;
-    app.currentStage = 1;
-
-    app.isPaused = false;
-    app.isClear = false;
-
     app.spawnTimer = 0.0f;
 
+    // 패시브 아이템 관련 데이터 초기화
     app.inventory = passive_items::Inventory{};
     app.meals = passive_items::MealDropSystem{};
+    app.rewardMessage = passive_items::RewardMessage{};
 
     for (int i = 0; i < MAX_PROJECTILES; ++i)
     {
@@ -42,11 +41,8 @@ void InitApp(App& app, int screenWidth, int screenHeight)
 
     app.screenWidth = screenWidth;
     app.screenHeight = screenHeight;
-
     app.currentScreen = APP_SCREEN_NAME_INPUT;
-
     app.playerName[0] = '\0';
-
     app.isInputComplete = false;
     app.selectedMenu = 0;
     app.backToMain = false;
@@ -86,7 +82,6 @@ static void SpawnProjectile(App& app)
 
     float dx = mousePosition.x - app.player.position.x;
     float dy = mousePosition.y - app.player.position.y;
-
     float distance = std::sqrt(dx * dx + dy * dy);
 
     if (distance <= 0.0f)
@@ -102,12 +97,10 @@ static void SpawnProjectile(App& app)
             );
 
             app.projectiles[i].position = app.player.position;
-
             app.projectiles[i].velocity = {
                 (dx / distance) * 450.0f,
                 (dy / distance) * 450.0f
             };
-
             app.projectiles[i].radius = 6.0f;
             app.projectiles[i].damage = damage;
             app.projectiles[i].active = true;
@@ -162,14 +155,30 @@ static void UpdateProjectiles(App& app, float deltaTime)
                     app.inventory
                 );
 
-                app.playerExp += static_cast<int>(gainedExp + 0.5f);
+                int expAmount = static_cast<int>(gainedExp + 0.5f);
 
-                while (app.playerExp >= 100)
+                // Player 모듈을 통한 경험치 획득 및 레벨업 처리
+                if (GainExperience(app.player, expAmount))
                 {
-                    app.playerExp -= 100;
-                    app.currentStage++;
+                    // 레벨업에 성공하면 Core 모듈의 스테이지 진행
+                    AdvanceStage(app.progress);
+
+                    // 레벨업 보상 지급
+                    passive_items::LevelUpReward reward =
+                        passive_items::OnLevelUp(
+                            app.inventory,
+                            app.player.hp,
+                            app.player.level
+                        );
+
+                    // 보상 획득 문구 설정
+                    passive_items::ShowRewardMessage(
+                        app.rewardMessage,
+                        reward
+                    );
                 }
 
+                // 몬스터 사망 위치에 학식 드롭 시도
                 passive_items::OnEnemyDefeated(
                     app.meals,
                     hitResult.position
@@ -182,6 +191,12 @@ static void UpdateProjectiles(App& app, float deltaTime)
 // 게임 진행 업데이트
 static void UpdateGame(App& app, float deltaTime)
 {
+    // 보상 문구 표시 시간 갱신
+    passive_items::UpdateRewardMessage(
+        app.rewardMessage,
+        deltaTime
+    );
+
     // 플레이어 이동
     UpdatePlayer(
         app.player,
@@ -199,7 +214,7 @@ static void UpdateGame(App& app, float deltaTime)
             app.monsters,
             app.screenWidth,
             app.screenHeight,
-            app.currentStage
+            app.progress.currentStage
         );
 
         app.spawnTimer -= SPAWN_INTERVAL;
@@ -219,10 +234,17 @@ static void UpdateGame(App& app, float deltaTime)
         app.player.radius
     );
 
-    app.playerHp -= damageTaken;
+    // Player 모듈을 통한 체력 감소 및 사망 처리
+    DamagePlayer(app.player, damageTaken);
 
-    if (app.playerHp < 0.0f)
-        app.playerHp = 0.0f;
+    // 플레이어 사망 시 게임 오버 처리
+    if (!app.player.isAlive)
+    {
+        SetGameOver(app.progress);
+        app.backToMain = false;
+        app.currentScreen = APP_SCREEN_RESULT;
+        return;
+    }
 
     // 마우스 좌클릭으로 투사체 발사
     SpawnProjectile(app);
@@ -235,16 +257,8 @@ static void UpdateGame(App& app, float deltaTime)
         app.meals,
         app.player.position,
         app.player.radius,
-        app.playerHp
+        app.player.hp
     );
-
-    // 플레이어 사망 시 결과 화면으로 이동
-    if (app.playerHp <= 0.0f)
-    {
-        app.isClear = false;
-        app.backToMain = false;
-        app.currentScreen = APP_SCREEN_RESULT;
-    }
 }
 
 // App 업데이트
@@ -261,45 +275,35 @@ void UpdateApp(
     switch (app.currentScreen)
     {
         case APP_SCREEN_NAME_INPUT:
-
             if (app.isInputComplete)
             {
                 app.currentScreen = APP_SCREEN_MAIN_MENU;
                 app.selectedMenu = 0;
             }
-
             break;
 
         case APP_SCREEN_MAIN_MENU:
-
             UpdateMainMenu(app);
-
             break;
 
         case APP_SCREEN_LEADERBOARD:
-
             if (app.backToMain)
             {
                 app.backToMain = false;
                 app.currentScreen = APP_SCREEN_MAIN_MENU;
             }
-
             break;
 
         case APP_SCREEN_GAME:
-
             UpdateGame(app, deltaTime);
-
             break;
 
         case APP_SCREEN_RESULT:
-
             if (app.backToMain)
             {
                 app.backToMain = false;
                 app.currentScreen = APP_SCREEN_MAIN_MENU;
             }
-
             break;
     }
 }
@@ -307,6 +311,9 @@ void UpdateApp(
 // 게임 오브젝트 출력
 static void DrawGameObjects(const App& app)
 {
+    // 학식 출력
+    passive_items::DrawMeals(app.meals);
+
     // 몬스터 출력
     DrawMonsters(app.monsters);
 
@@ -329,14 +336,19 @@ static void DrawGameObjects(const App& app)
     DrawPlayer(app.player);
 
     // 플레이어 HP 바
-    float hpRatio = app.playerHp / 100.0f;
-    
+    float hpRatio = 0.0f;
+
+    if (app.player.maxHp > 0.0f)
+    {
+        hpRatio = app.player.hp / app.player.maxHp;
+    }
+
     if (hpRatio < 0.0f) hpRatio = 0.0f;
     if (hpRatio > 1.0f) hpRatio = 1.0f;
-    
+
     float hpBarWidth = 50.0f;
     float hpBarHeight = 6.0f;
-    
+
     DrawRectangle(
         (int)(app.player.position.x - hpBarWidth / 2),
         (int)(app.player.position.y + app.player.radius + 6),
@@ -344,7 +356,7 @@ static void DrawGameObjects(const App& app)
         (int)hpBarHeight,
         WHITE
     );
-    
+
     DrawRectangle(
         (int)(app.player.position.x - hpBarWidth / 2),
         (int)(app.player.position.y + app.player.radius + 6),
@@ -353,13 +365,12 @@ static void DrawGameObjects(const App& app)
         RED
     );
 
-    // App에서 관리하는 게임 정보 출력
+    // 게임 정보 출력
     DrawText(
         TextFormat(
-            "HP: %.0f | EXP: %d | Stage: %d | Killed: %d",
-            app.playerHp,
-            app.playerExp,
-            app.currentStage,
+            "HP: %.0f | Stage: %d | Killed: %d",
+            app.player.hp,
+            app.progress.currentStage,
             app.defeatedCount
         ),
         20,
@@ -386,59 +397,65 @@ void DrawApp(App& app)
     switch (app.currentScreen)
     {
         case APP_SCREEN_NAME_INPUT:
-
             DrawNameInputScreen(
                 app.playerName,
                 10,
                 &app.isInputComplete
             );
-
             break;
 
         case APP_SCREEN_MAIN_MENU:
-
             DrawMainScreen(
                 &app.selectedMenu,
                 app.playerName
             );
-
             break;
 
         case APP_SCREEN_LEADERBOARD:
-
             DrawLeaderboardScreen(
                 &app.backToMain,
                 app.playerName,
-                TextFormat("Stage %d", app.currentStage),
+                TextFormat("Stage %d", app.progress.currentStage),
                 app.defeatedCount
             );
-
             break;
 
         case APP_SCREEN_GAME:
-
             // UI 함수가 배경을 지우므로 게임 오브젝트보다 먼저 호출
             DrawGameScreen(
                 app.playerName,
-                app.playerExp,
-                app.currentStage
+                app.player.experience,
+                app.player.requiredExperience,
+                app.progress.currentStage
             );
 
             DrawGameObjects(app);
 
+            // 보상 획득 문구 출력
+            passive_items::DrawRewardMessage(
+                app.rewardMessage,
+                app.screenWidth,
+                app.screenHeight
+            );
+
             break;
 
         case APP_SCREEN_RESULT:
+        {
+            // Core 모듈의 게임 상태를 결과 화면에 전달
+            bool isClear =
+                app.progress.gameState == GameState::GAME_CLEAR;
 
             DrawResultScreen(
-                &app.isClear,
+                isClear,
                 &app.backToMain,
                 app.playerName,
-                TextFormat("Stage %d", app.currentStage),
+                TextFormat("Stage %d", app.progress.currentStage),
                 app.defeatedCount
             );
 
             break;
+        }
     }
 }
 

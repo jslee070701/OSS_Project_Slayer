@@ -1,3 +1,4 @@
+
 #include "items/passive_items.h"
 
 #include <algorithm>
@@ -89,7 +90,8 @@ namespace passive_items
         // HP를 20 회복하되 최대 100으로 제한
         hp = std::min(hp + 20.0f, 100.0f);
     }
-        bool TryDropMeal(
+
+    bool TryDropMeal(
         MealDropSystem& system,
         Vector2 enemyPosition,
         int roll
@@ -150,10 +152,10 @@ namespace passive_items
             }
 
             if (CheckCollisionCircles(
-                    playerPosition,
-                    playerCollisionRadius,
-                    drop.position,
-                    MEAL_RADIUS))
+                playerPosition,
+                playerCollisionRadius,
+                drop.position,
+                MEAL_RADIUS))
             {
                 ApplyMealHealing(hp);
                 drop.active = false;
@@ -287,9 +289,11 @@ namespace passive_items
 
     void ShowRewardMessage(RewardMessage& message, const LevelUpReward& reward)
     {
-        // 지급이 없으면 문구도 표시하지 않음
+        // 지급이 없으면 기존 문구와 표시 시간 초기화
         if (reward.kind == RewardKind::None)
         {
+            message.text = "";
+            message.timer = 0.0f;
             return;
         }
 
@@ -329,4 +333,3 @@ namespace passive_items
         );
     }
 }
-

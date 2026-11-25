@@ -3,8 +3,8 @@
 
 #include "raylib.h"
 #include "player/player.h"
+#include "core/core.h"
 #include "monsters/monster.h"
-#include "items/passive_items.h"
 #include "items/passive_items.h"
 
 #define MAX_PROJECTILES 20
@@ -47,10 +47,8 @@ struct App
     Player player;
 
     // 게임 진행 데이터
-    float playerHp;
-    int playerExp;
+    GameProgress progress;
     int defeatedCount;
-    int currentStage;
 
     // 몬스터
     Monster monsters[MAX_MONSTERS];
@@ -61,10 +59,9 @@ struct App
     // 패시브 아이템
     passive_items::Inventory inventory;
     passive_items::MealDropSystem meals;
+    passive_items::RewardMessage rewardMessage;
 
-    // 게임 상태
-    bool isPaused;
-    bool isClear;
+    // 프로그램 실행 상태
     bool shouldExit;
 
     // 몬스터 생성 시간

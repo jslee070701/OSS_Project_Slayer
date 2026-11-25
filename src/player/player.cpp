@@ -1,3 +1,4 @@
+
 #include "player/player.h"
 #include <cmath>
 
@@ -18,7 +19,6 @@ Player CreatePlayer(Vector2 startPosition)
     return player;
 }
 
-// 플레이어 이동
 // 플레이어 이동
 void UpdatePlayer(
     Player& player,
