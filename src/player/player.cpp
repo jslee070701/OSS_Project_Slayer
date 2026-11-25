@@ -27,6 +27,15 @@ void UpdatePlayer(
     int screenHeight
 )
 {
+    // 피격 무적 시간 감소
+    if (player.invulnerabilityTimer > 0.0f)
+    {
+        player.invulnerabilityTimer -= deltaTime;
+
+        if (player.invulnerabilityTimer < 0.0f)
+            player.invulnerabilityTimer = 0.0f;
+    }
+
     // 이동 방향
     Vector2 direction = { 0.0f, 0.0f };
 
@@ -75,4 +84,53 @@ void DrawPlayer(const Player& player)
         player.radius,
         BLUE
     );
+}
+
+// 플레이어 피해 및 사망 처리
+void DamagePlayer(Player& player, float damage)
+{
+    // 사망한 플레이어, 무적 상태 또는 유효하지 않은 피해량 무시
+    if (!player.isAlive || damage <= 0.0f || player.invulnerabilityTimer > 0.0f)
+        return;
+
+    // 체력 감소
+    player.hp -= damage;
+
+    // 피격 후 0.5초 무적 적용
+    player.invulnerabilityTimer = 0.5f;
+
+    // 체력이 0 이하가 되면 사망 처리
+    if (player.hp <= 0.0f)
+    {
+        player.hp = 0.0f;
+        player.isAlive = false;
+    }
+}
+
+// 플레이어 경험치 획득 및 레벨업 처리
+bool GainExperience(Player& player, int amount)
+{
+    // 사망한 플레이어 또는 유효하지 않은 경험치 무시
+    if (!player.isAlive || amount <= 0)
+        return false;
+
+    // 경험치 누적
+    player.experience += amount;
+
+    // 필요 경험치에 도달하면 레벨업
+    if (player.experience >= player.requiredExperience)
+    {
+        // 경험치 초기화
+        player.experience = 0;
+
+        // 레벨 증가
+        player.level++;
+
+        // 다음 레벨 필요 경험치 증가
+        player.requiredExperience += 10;
+
+        return true;
+    }
+
+    return false;
 }
