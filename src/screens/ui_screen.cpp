@@ -26,15 +26,6 @@ void DrawNameInputScreen(char *nameBuffer, int maxInputLength, bool *isInputComp
     if (isTextBoxActive) {
         int key = GetCharPressed();
         while (key > 0) {
-            if (key == 13 || key == 10) {
-                int len = strlen(nameBuffer);
-                if (len >= 1 && len < maxInputLength) {
-                    *isInputComplete = true;
-                    isTextBoxActive = false;
-                }
-                break;
-            }
-
             if (key >= 'a' && key <= 'z') {
                 int currentLen = strlen(nameBuffer);
                 if (currentLen < maxInputLength - 1) {
@@ -52,9 +43,13 @@ void DrawNameInputScreen(char *nameBuffer, int maxInputLength, bool *isInputComp
             }
         }
 
-        if (IsKeyPressed(KEY_ENTER)) {
+        // Enter 키를 누르면 이름 입력 완료
+        if (IsKeyPressed(KEY_ENTER))
+        {
             int len = strlen(nameBuffer);
-            if (len >= 1 && len < maxInputLength) {
+            
+            if (len >= 1 && len < maxInputLength)
+            {
                 *isInputComplete = true;
                 isTextBoxActive = false;
             }
@@ -151,30 +146,94 @@ void DrawLeaderboardScreen(bool *backToMain, const char *playerName, const char 
 }
 
 // 4. 게임 화면
-void DrawGameScreen(bool *isPaused, const char *playerName) {
+void DrawGameScreen(
+    const char *playerName,
+    int playerExp,
+    int currentStage
+) {
     ClearBackground(DARKGRAY);
 
-    DrawRectangle(GetScreenWidth() / 2 - 250, 20, 500, 20, LIGHTGRAY);
-    DrawRectangle(GetScreenWidth() / 2 - 250, 20, 250, 20, GREEN);
+    // EXP 범위 제한
+    if (playerExp < 0) playerExp = 0;
+
+    // 플레이어 이름
+    DrawText(
+        TextFormat("Player: %s",
+            playerName[0] != '\0' ? playerName : "Player1"),
+        20, 20, 18, WHITE
+    );
+
+    // EXP 바
     DrawText("EXP", GetScreenWidth() / 2 - 280, 20, 16, WHITE);
+    
+    // EXP 값 제한 (0~100)
+    int displayedExp = playerExp;
+    
+    if (displayedExp < 0)
+    displayedExp = 0;
+    
+    if (displayedExp > 100)
+    displayedExp = 100;
+    
+    // EXP 바 배경
+    DrawRectangle(
+        GetScreenWidth() / 2 - 250,
+        20,
+        500,
+        20,
+        LIGHTGRAY
+    );
+    
+    // 현재 EXP에 비례하여 초록색 바 표시
+    int expBarWidth = (int)(500.0f * displayedExp / 100.0f);
+    
+    DrawRectangle(
+        GetScreenWidth() / 2 - 250,
+        20,
+        expBarWidth,
+        20,
+        GREEN
+    );
+    
+    // EXP 수치
+    DrawText(
+        TextFormat("EXP: %d", playerExp),
+        GetScreenWidth() / 2 + 260,
+        20,
+        16,
+        WHITE
+    );
 
-    DrawText("Stage: Midterm 5 Weeks Before", GetScreenWidth() / 2 - 120, 45, 16, YELLOW);
-    DrawText(TextFormat("Player: %s", playerName[0] != '\0' ? playerName : "Player1"), 20, 20, 18, WHITE);
+    DrawText(
+        TextFormat("EXP: %d", playerExp),
+        GetScreenWidth() / 2 + 260,
+        20,
+        16,
+        WHITE
+    );
 
-    Rectangle pauseBtn = { 20, 48, 80, 30 };
-    Vector2 mousePos = GetMousePosition();
-    bool btnHover = CheckCollisionPointRec(mousePos, pauseBtn);
-    DrawRectangleRec(pauseBtn, btnHover ? GRAY : LIGHTGRAY);
-    DrawText("Pause", (int)pauseBtn.x + 15, (int)pauseBtn.y + 5, 16, BLACK);
-
-    if (btnHover && IsMouseButtonPressed(MOUSE_BUTTON_LEFT)) {
-        *isPaused = !(*isPaused);
-    }
-
-    DrawText("Monsters Defeated: 12", GetScreenWidth() - 220, 20, 18, YELLOW);
-
-    DrawCircle(GetScreenWidth() / 2, GetScreenHeight() / 2, 20, BLUE);
-    DrawRectangle(GetScreenWidth() / 2 - 25, GetScreenHeight() / 2 + 25, 50, 10, RED);
+    // 스테이지 이름
+    const char* stageNames[] = {
+        "5 Weeks Before",
+        "4 Weeks Before",
+        "3 Weeks Before",
+        "2 Weeks Before",
+        "1 Week Before",
+        "Exam Day"
+    };
+    
+    const char* stageName =
+    (currentStage >= 1 && currentStage <= 6)
+    ? stageNames[currentStage - 1]
+    : "Completed";
+    
+    DrawText(
+        TextFormat("Stage: %s", stageName),
+        GetScreenWidth() / 2 - 120,
+        50,
+        16,
+        YELLOW
+    );
 }
 
 // 5. 결과 화면
