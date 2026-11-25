@@ -75,4 +75,66 @@ namespace passive_items
 
     // 학식 획득: HP를 20 회복하며 최대 100으로 제한
     void ApplyMealHealing(float& hp);
+
+    // 화면에 활성화된 학식 그리기
+    void DrawMeals(const MealDropSystem& system);
+
+    // ITEM_001 아이템 지급 ------------------------------------------
+
+    // 이 레벨에 도달하면 아이템을 지급하지 않음
+    constexpr int NO_REWARD_LEVEL = 13;
+
+    // 획득 문구 표시 시간(초)
+    constexpr float REWARD_MESSAGE_TIME = 2.0f;
+
+    // 레벨업 보상 결과
+    enum class RewardKind
+    {
+        None,   // 지급 없음 (레벨 13)
+        Item,   // 패시브 아이템 지급
+        Meal    // 모든 아이템 최대 개수: 학식 즉시 지급
+    };
+
+    struct LevelUpReward
+    {
+        RewardKind kind = RewardKind::None;
+        ItemType item = ItemType::Coffee;
+    };
+
+    // 최대 개수가 아닌 아이템 목록을 out에 채우고 개수 반환
+    int GetAvailableItems(const Inventory& inventory, ItemType out[3]);
+
+    // 테스트 가능한 레벨업 보상: pick은 지급 가능한 아이템 중 순번(0부터)
+    LevelUpReward GrantLevelUpReward(
+        Inventory& inventory,
+        float& hp,
+        int newLevel,
+        int pick
+    );
+
+    // 레벨업 시 호출하는 실제 무작위 보상 함수
+    LevelUpReward OnLevelUp(Inventory& inventory, float& hp, int newLevel);
+
+    // 화면 중앙 획득 문구
+    struct RewardMessage
+    {
+        const char* text = "";
+        float timer = 0.0f;
+    };
+
+    // 보상 결과에 맞는 문구 반환 (예: "Coffee acquired!")
+    const char* GetRewardText(const LevelUpReward& reward);
+
+    // 문구 표시 시작
+    void ShowRewardMessage(RewardMessage& message, const LevelUpReward& reward);
+
+    // 매 프레임 표시 시간 감소
+    void UpdateRewardMessage(RewardMessage& message, float deltaTime);
+
+    // 표시 시간이 남아 있으면 화면 중앙에 출력
+    void DrawRewardMessage(
+        const RewardMessage& message,
+        int screenWidth,
+        int screenHeight
+    );
 }

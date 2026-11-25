@@ -29,6 +29,8 @@ int main()
 
     Vector2 position = { 550.0f, 480.0f };
     float hp = 70.0f;
+    int level = 1;
+    RewardMessage rewardMessage{};
 
     std::string message = "Ready. Press 1, 2 or 3 to acquire items.";
 
@@ -43,8 +45,24 @@ int main()
             meals = MealDropSystem{};
             position = Vector2{ 550.0f, 480.0f };
             hp = 70.0f;
+            level = 1;
+            rewardMessage = RewardMessage{};
             message = "Test reset.";
         }
+
+        // 레벨업 시뮬레이션: ITEM_001 아이템 지급 확인
+        if (IsKeyPressed(KEY_L))
+        {
+            ++level;
+            const LevelUpReward reward = OnLevelUp(inventory, hp, level);
+            ShowRewardMessage(rewardMessage, reward);
+
+            message = reward.kind == RewardKind::None
+                ? "Level 13: no item given."
+                : "Level up: random item given.";
+        }
+
+        UpdateRewardMessage(rewardMessage, deltaTime);
 
         // 패시브 아이템 획득 및 최대 개수 확인
         if (IsKeyPressed(KEY_ONE))
@@ -188,7 +206,7 @@ int main()
         );
 
         DrawText(
-            "R: reset | ESC: close | Place meals below this panel",
+            "L: level up | R: reset | ESC: close | Meals go below panel",
             20, 115, 20, LIGHTGRAY
         );
 
@@ -222,29 +240,16 @@ int main()
 
         DrawText(
             TextFormat(
-                "HP: %.0f/100 | Meals on ground: %d/2",
-                hp, activeMeals
+                "HP: %.0f/100 | Meals on ground: %d/2 | Level: %d",
+                hp, activeMeals, level
             ),
             20, 245, 20, WHITE
         );
 
         DrawText(message.c_str(), 20, 280, 18, ORANGE);
 
-        // 학식은 초록색 원으로 임시 표시
-        for (const MealDrop& drop : meals.drops)
-        {
-            if (drop.active)
-            {
-                DrawCircleV(drop.position, MEAL_RADIUS, GREEN);
-                DrawText(
-                    "+20",
-                    static_cast<int>(drop.position.x) - 15,
-                    static_cast<int>(drop.position.y) - 30,
-                    18,
-                    GREEN
-                );
-            }
-        }
+        // 학식 출력: passive_items 모듈의 DrawMeals 사용
+        DrawMeals(meals);
 
         // 임시 플레이어와 HP 바
         DrawCircleV(position, playerRadius, SKYBLUE);
@@ -261,6 +266,9 @@ int main()
             GREEN
         );
         DrawRectangleLines(barX, barY, 60, 8, WHITE);
+
+        // 화면 중앙 획득 문구
+        DrawRewardMessage(rewardMessage, screenWidth, screenHeight);
 
         EndDrawing();
     }
