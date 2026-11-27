@@ -28,12 +28,13 @@ struct Player
 // 플레이어 생성
 Player CreatePlayer(Vector2 startPosition);
 
-// 플레이어 이동
+// 플레이어 이동 -> (speedMultiplier: 아이템 등으로 인한 이동속도 배율)
 void UpdatePlayer(
     Player& player,
     float deltaTime,
     int screenWidth,
-    int screenHeight
+    int screenHeight,
+    float speedMultiplier = 1.0f
 );
 
 // 플레이어 그리기
