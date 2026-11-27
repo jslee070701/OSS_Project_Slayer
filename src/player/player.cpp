@@ -1,0 +1,139 @@
+
+#include "player/player.h"
+#include <cmath>
+
+// 플레이어 생성
+Player CreatePlayer(Vector2 startPosition)
+{
+    Player player{};
+
+    // 초기 위치 설정
+    player.position = startPosition;
+
+    // 플레이어 크기 설정
+    player.radius = 20.0f;
+
+    // 플레이어 이동 속도 설정
+    player.speed = 250.0f;
+
+    return player;
+}
+
+// 플레이어 이동
+void UpdatePlayer(
+    Player& player,
+    float deltaTime,
+    int screenWidth,
+    int screenHeight,
+    float speedMultiplier
+)
+{
+    // 피격 무적 시간 감소
+    if (player.invulnerabilityTimer > 0.0f)
+    {
+        player.invulnerabilityTimer -= deltaTime;
+
+        if (player.invulnerabilityTimer < 0.0f)
+            player.invulnerabilityTimer = 0.0f;
+    }
+
+    // 이동 방향
+    Vector2 direction = { 0.0f, 0.0f };
+
+    // 키보드 입력
+    if (IsKeyDown(KEY_W)) direction.y -= 1.0f;
+    if (IsKeyDown(KEY_S)) direction.y += 1.0f;
+    if (IsKeyDown(KEY_A)) direction.x -= 1.0f;
+    if (IsKeyDown(KEY_D)) direction.x += 1.0f;
+
+    // 이동 방향의 길이 계산
+    float length = std::sqrt(
+        direction.x * direction.x +
+        direction.y * direction.y
+    );
+
+    // 대각선 이동 속도 보정
+    if (length > 0.0f)
+    {
+        direction.x /= length;
+        direction.y /= length;
+    }
+
+    // 플레이어 위치 갱신 -> (아이템 이동속도 배율 적용)
+    const float currentSpeed = player.speed * speedMultiplier;
+
+    player.position.x += direction.x * currentSpeed * deltaTime;
+    player.position.y += direction.y * currentSpeed * deltaTime;
+
+    // 화면 경계 제한
+    if (player.position.x < player.radius)
+        player.position.x = player.radius;
+
+    if (player.position.x > screenWidth - player.radius)
+        player.position.x = screenWidth - player.radius;
+
+    if (player.position.y < player.radius)
+        player.position.y = player.radius;
+
+    if (player.position.y > screenHeight - player.radius)
+        player.position.y = screenHeight - player.radius;
+}
+
+// 플레이어 그리기
+void DrawPlayer(const Player& player)
+{
+    DrawCircleV(
+        player.position,
+        player.radius,
+        BLUE
+    );
+}
+
+// 플레이어 피해 및 사망 처리
+void DamagePlayer(Player& player, float damage)
+{
+    // 사망한 플레이어, 무적 상태 또는 유효하지 않은 피해량 무시
+    if (!player.isAlive || damage <= 0.0f || player.invulnerabilityTimer > 0.0f)
+        return;
+
+    // 체력 감소
+    player.hp -= damage;
+
+    // 피격 후 0.5초 무적 적용
+    player.invulnerabilityTimer = 0.5f;
+
+    // 체력이 0 이하가 되면 사망 처리
+    if (player.hp <= 0.0f)
+    {
+        player.hp = 0.0f;
+        player.isAlive = false;
+    }
+}
+
+// 플레이어 경험치 획득 및 레벨업 처리
+bool GainExperience(Player& player, int amount)
+{
+    // 사망한 플레이어 또는 유효하지 않은 경험치 무시
+    if (!player.isAlive || amount <= 0)
+        return false;
+
+    // 경험치 누적
+    player.experience += amount;
+
+    // 필요 경험치에 도달하면 레벨업
+    if (player.experience >= player.requiredExperience)
+    {
+        // 경험치 초기화
+        player.experience = 0;
+
+        // 레벨 증가
+        player.level++;
+
+        // 다음 레벨 필요 경험치 증가
+        player.requiredExperience += 10;
+
+        return true;
+    }
+
+    return false;
+}
