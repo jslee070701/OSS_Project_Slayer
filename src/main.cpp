@@ -1,5 +1,5 @@
 
-#include "raylib.h"
+#include "app/app.h"
 
 int main()
 {
@@ -12,25 +12,34 @@ int main()
     // FPS 설정
     SetTargetFPS(60);
 
+    // App 객체 생성 및 초기화
+    App app{};
+    InitApp(app, screenWidth, screenHeight);
+
     // 게임 실행
-    while (!WindowShouldClose())
+    while (!WindowShouldClose() && !app.shouldExit)
     {
+        // 프레임 간 시간 간격 계산
+        float deltaTime = GetFrameTime();
+
+        // 게임 상태 업데이트
+        UpdateApp(
+            app,
+            deltaTime,
+            screenWidth,
+            screenHeight
+        );
+
+        // 화면 출력
         BeginDrawing();
 
-        ClearBackground(RAYWHITE);
-
-        DrawText(
-            "Exam Season Survivors",
-            400, 300, 40, DARKBLUE
-        );
-
-        DrawText(
-            "raylib setup successful!",
-            450, 370, 20, DARKGRAY
-        );
+        DrawApp(app);
 
         EndDrawing();
     }
+
+    // App 종료 및 정리
+    ShutdownApp(app);
 
     // 게임 창 종료
     CloseWindow();
