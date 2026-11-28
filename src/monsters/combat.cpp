@@ -36,11 +36,12 @@ float ResolvePlayerMonsterCombat(Monster monsters[], Boss* boss, Vector2 playerP
 }
 
 MonsterHitResult ResolveProjectileMonsterCombat(Monster monsters[], Boss* boss, Vector2 projectilePos, float projectileRadius, float damage) {
-    // 1. 보스 우선 충돌 체크 (덩치가 크므로 먼저 판정)
+    // 보스 우선 충돌 체크 (덩치가 크므로 먼저 판정)
     if (boss != NULL && boss->active) {
         if (CheckCircleCollision(projectilePos, projectileRadius, boss->position, boss->collisionRadius)) {
             return DamageBoss(boss, damage);
         }
+        
     }
 
     // 2. 일반 몬스터 충돌 체크
@@ -54,6 +55,6 @@ MonsterHitResult ResolveProjectileMonsterCombat(Monster monsters[], Boss* boss, 
         }
     }
 
-    MonsterHitResult emptyResult = { false, false, 0, { 0.0f, 0.0f }, false, BOSS_MIDTERM };
+    MonsterHitResult emptyResult = { false, false, 0, { 0.0f, 0.0f }, false, MONSTER_SLEEPY, BOSS_MIDTERM };
     return emptyResult;
 }
