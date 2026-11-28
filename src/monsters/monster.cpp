@@ -144,11 +144,14 @@ void DrawMonsters(const Monster monsters[]) {
 }
 
 MonsterHitResult DamageMonster(Monster* monster, float damage) {
-    MonsterHitResult result = { false, false, 0, { 0.0f, 0.0f }, false, BOSS_MIDTERM };
+    MonsterHitResult result = { false, false, 0, { 0.0f, 0.0f }, false, MONSTER_SLEEPY, BOSS_MIDTERM };
     if (monster == NULL || !monster->active) return result;
 
     result.hit = true;
     result.position = monster->position;
+    result.isBoss = false;
+    result.monsterType = monster->type; // 2) 피격된 일반 몬스터 종류 저장 (추가)
+
     monster->hp -= damage;
 
     if (monster->hp <= 0.0f) {
@@ -169,7 +172,7 @@ void InitBoss(Boss* boss) {
 }
 // 보스 중간고사
 void SpawnMidtermBoss(Boss* boss) {
-    if (boss == NULL) return;
+   if (boss == NULL || boss->active) return; 
 
     boss->active = true;
     boss->type = BOSS_MIDTERM;
@@ -184,7 +187,7 @@ void SpawnMidtermBoss(Boss* boss) {
 }
 // 보스 기말고사
 void SpawnFinalBoss(Boss* boss) {
-    if (boss == NULL) return;
+    if (boss == NULL || boss->active) return;
 
     boss->active = true;
     boss->type = BOSS_FINAL;
@@ -246,9 +249,9 @@ void DrawBossHpBar(const Boss* boss, int screenWidth) {
 }
 
 MonsterHitResult DamageBoss(Boss* boss, float damage) {
-    MonsterHitResult result = { false, false, 0, { 0.0f, 0.0f }, true, BOSS_MIDTERM };
+    MonsterHitResult result = { false, false, 0, { 0.0f, 0.0f }, true, MONSTER_SLEEPY, BOSS_MIDTERM };
     if (boss == NULL || !boss->active) return result;
-
+    
     result.hit = true;
     result.position = boss->position;
     result.isBoss = true;
