@@ -57,12 +57,13 @@ typedef struct {
 
 // 공격이나 피격 결과 구조체 (App 전달용)
 typedef struct {
-    bool hit;               // 명중 여부
-    bool killed;            // 처치 여부
-    int expReward;          // 획득 경험치
-    Vector2 position;       // 피격/사망 좌표 (아이템 드롭 위치용)
-    bool isBoss;            // 보스 여부
-    BossType bossType;      // 보스일 경우 보스 종류 (중간/기말 구분용)
+    bool hit;                   // 명중 여부
+    bool killed;                // 처치 여부
+    int expReward;              // 획득 경험치
+    Vector2 position;           // 피격/사망 좌표 (아이템 드롭 위치용)
+    bool isBoss;                // 보스 여부 (true: 보스, false: 일반 몬스터)
+    MonsterType monsterType;    // 일반 몬스터일 경우 종류 (졸음이/쪽지시험/팀플)
+    BossType bossType;          // 보스일 경우 보스 종류 (중간고사/기말고사)
 } MonsterHitResult;
 
 // 일반 몬스터 함수
