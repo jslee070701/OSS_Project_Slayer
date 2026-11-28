@@ -1,283 +1,307 @@
-
 #include "monsters/monster.h"
-#include <cmath>
+#include <math.h>
+#include <float.h>
 
-// 화면 외곽 4방향 + 50px 여백 스폰 좌표 설정
-static void SetRandomSpawnPosition(
-    Monster& monster,
-    int screenWidth,
-    int screenHeight
-)
-{
+// 화면 밖 4방향 무작위 스폰 좌표 생성
+static Vector2 GetRandomSpawnPosition(void) {
+    int screenWidth = GetScreenWidth();
+    int screenHeight = GetScreenHeight();
     int side = GetRandomValue(0, 3);
+    Vector2 pos = { 0.0f, 0.0f };
 
-    switch (side)
-    {
-    case 0: // 위쪽 바깥
-        monster.position.x = (float)GetRandomValue(0, screenWidth);
-        monster.position.y = (float)GetRandomValue(-(int)SPAWN_PADDING, 0);
-        break;
-
-    case 1: // 아래쪽 바깥
-        monster.position.x = (float)GetRandomValue(0, screenWidth);
-        monster.position.y = (float)GetRandomValue(screenHeight, screenHeight + (int)SPAWN_PADDING);
-        break;
-
-    case 2: // 왼쪽 바깥
-        monster.position.x = (float)GetRandomValue(-(int)SPAWN_PADDING, 0);
-        monster.position.y = (float)GetRandomValue(0, screenHeight);
-        break;
-
-    case 3: // 오른쪽 바깥
-        monster.position.x = (float)GetRandomValue(screenWidth, screenWidth + (int)SPAWN_PADDING);
-        monster.position.y = (float)GetRandomValue(0, screenHeight);
-        break;
+    switch (side) {
+        case 0: // 상단
+            pos.x = (float)GetRandomValue(0, screenWidth);
+            pos.y = -SPAWN_PADDING;
+            break;
+        case 1: // 하단
+            pos.x = (float)GetRandomValue(0, screenWidth);
+            pos.y = (float)screenHeight + SPAWN_PADDING;
+            break;
+        case 2: // 좌측
+            pos.x = -SPAWN_PADDING;
+            pos.y = (float)GetRandomValue(0, screenHeight);
+            break;
+        case 3: // 우측
+            pos.x = (float)screenWidth + SPAWN_PADDING;
+            pos.y = (float)GetRandomValue(0, screenHeight);
+            break;
     }
+    return pos;
 }
 
-// 몬스터 생성 공통 처리
-static void SpawnMonster(
-    Monster monsters[],
-    int screenWidth,
-    int screenHeight,
-    int currentStage,
-    MonsterType type,
-    float baseHp,
-    float speed,
-    float attack,
-    int expReward,
-    float spriteRadius
-)
-{
-    // 비어 있는 몬스터 배열 위치 검색
-    for (int i = 0; i < MAX_MONSTERS; i++)
-    {
-        if (!monsters[i].active)
-        {
-            Monster& monster = monsters[i];
-
-            // 스테이지에 따른 HP 증가량 계산
-            float bonusHp = (currentStage > 1)
-                ? (float)((currentStage - 1) * STAGE_HP_INCREMENT)
-                : 0.0f;
-
-            // 몬스터 기본 정보 설정
-            monster.active = true;
-            monster.type = type;
-            monster.maxHp = baseHp + bonusHp;
-            monster.hp = monster.maxHp;
-            monster.speed = speed;
-            monster.attack = attack;
-            monster.expReward = expReward;
-            monster.spriteRadius = spriteRadius;
-            monster.collisionRadius = monster.spriteRadius * 0.8f;
-            monster.attackCooldown = 0.0f;
-
-            // 몬스터 생성 위치 설정
-            SetRandomSpawnPosition(
-                monster,
-                screenWidth,
-                screenHeight
-            );
-
-            return;
-        }
+static int FindInactiveMonsterSlot(const Monster monsters[]) {
+    for (int i = 0; i < MAX_MONSTERS; i++) {
+        if (!monsters[i].active) return i;
     }
+    return -1;
 }
 
-void InitMonsters(Monster monsters[])
-{
-    for (int i = 0; i < MAX_MONSTERS; i++)
-    {
+void InitMonsters(Monster monsters[]) {
+    for (int i = 0; i < MAX_MONSTERS; i++) {
         monsters[i].active = false;
-        monsters[i].attackCooldown = 0.0f;
     }
 }
 
-// 1. 졸음이 생성
-void SpawnSleepy(
-    Monster monsters[],
-    int screenWidth,
-    int screenHeight,
-    int currentStage
-)
-{
-    SpawnMonster(
-        monsters,
-        screenWidth,
-        screenHeight,
-        currentStage,
-        MONSTER_SLEEPY,
-        40.0f,
-        10.0f,
-        10.0f,
-        10,
-        20.0f
-    );
+// 졸음이
+void SpawnSleepy(Monster monsters[], int currentStage) {
+    int idx = FindInactiveMonsterSlot(monsters);
+    if (idx == -1) return;
+
+    float bonusHp = (currentStage > 1) ? (float)((currentStage - 1) * STAGE_HP_INCREMENT) : 0.0f;
+
+    monsters[idx].active = true;
+    monsters[idx].type = MONSTER_SLEEPY;
+    monsters[idx].position = GetRandomSpawnPosition();
+    monsters[idx].maxHp = 40.0f + bonusHp;
+    monsters[idx].hp = monsters[idx].maxHp;
+    monsters[idx].speed = 10.0f;
+    monsters[idx].attack = 10.0f;
+    monsters[idx].expReward = 10;
+    monsters[idx].collisionRadius = SLEEPY_RADIUS;
+    monsters[idx].attackCooldown = 0.0f;
 }
 
-// 2. 쪽지시험 생성 (빠르고 약한 돌격형)
-void SpawnPopQuiz(
-    Monster monsters[],
-    int screenWidth,
-    int screenHeight,
-    int currentStage
-)
-{
-    SpawnMonster(
-        monsters,
-        screenWidth,
-        screenHeight,
-        currentStage,
-        MONSTER_POP_QUIZ,
-        25.0f,
-        25.0f,
-        15.0f,
-        15,
-        16.0f
-    );
+// 쪽지시험
+void SpawnPopQuiz(Monster monsters[], int currentStage) {
+    int idx = FindInactiveMonsterSlot(monsters);
+    if (idx == -1) return;
+
+    float bonusHp = (currentStage > 1) ? (float)((currentStage - 1) * STAGE_HP_INCREMENT) : 0.0f;
+
+    monsters[idx].active = true;
+    monsters[idx].type = MONSTER_POP_QUIZ;
+    monsters[idx].position = GetRandomSpawnPosition();
+    monsters[idx].maxHp = 30.0f + bonusHp;
+    monsters[idx].hp = monsters[idx].maxHp;
+    monsters[idx].speed = 20.0f;
+    monsters[idx].attack = 10.0f;
+    monsters[idx].expReward = 15;
+    monsters[idx].collisionRadius = 13.0f;
+    monsters[idx].attackCooldown = 0.0f;
 }
 
-// 3. 팀프로젝트 생성 (느리지만 체력과 공격력이 높은 탱커형)
-void SpawnTeamProject(
-    Monster monsters[],
-    int screenWidth,
-    int screenHeight,
-    int currentStage
-)
-{
-    SpawnMonster(
-        monsters,
-        screenWidth,
-        screenHeight,
-        currentStage,
-        MONSTER_TEAM_PROJECT,
-        100.0f,
-        7.0f,
-        25.0f,
-        30,
-        28.0f
-    );
+// 팀프로젝트
+void SpawnTeamProject(Monster monsters[], int currentStage) {
+    int idx = FindInactiveMonsterSlot(monsters);
+    if (idx == -1) return;
+
+    float bonusHp = (currentStage > 1) ? (float)((currentStage - 1) * STAGE_HP_INCREMENT) : 0.0f;
+
+    monsters[idx].active = true;
+    monsters[idx].type = MONSTER_TEAM_PROJECT;
+    monsters[idx].position = GetRandomSpawnPosition();
+    monsters[idx].maxHp = 200.0f + bonusHp;
+    monsters[idx].hp = monsters[idx].maxHp;
+    monsters[idx].speed = 5.0f;
+    monsters[idx].attack = 20.0f;
+    monsters[idx].expReward = 40;
+    monsters[idx].collisionRadius = 22.0f;
+    monsters[idx].attackCooldown = 0.0f;
 }
 
-// 3종 중 확률적으로 1마리 생성 (졸음이 50%, 쪽지시험 30%, 팀프로젝트 20%)
-void SpawnRandomMonster(
-    Monster monsters[],
-    int screenWidth,
-    int screenHeight,
-    int currentStage
-)
-{
+void SpawnRandomMonster(Monster monsters[], int currentStage) {
     int roll = GetRandomValue(1, 100);
-
-    if (roll <= 50)
-    {
-        SpawnSleepy(monsters, screenWidth, screenHeight, currentStage);
-    }
-    else if (roll <= 80)
-    {
-        SpawnPopQuiz(monsters, screenWidth, screenHeight, currentStage);
-    }
-    else
-    {
-        SpawnTeamProject(monsters, screenWidth, screenHeight, currentStage);
+    if (roll <= 50) {
+        SpawnSleepy(monsters, currentStage);
+    } else if (roll <= 80) {
+        SpawnPopQuiz(monsters, currentStage);
+    } else {
+        SpawnTeamProject(monsters, currentStage);
     }
 }
 
-void UpdateMonsters(
-    Monster monsters[],
-    Vector2 targetPos,
-    float deltaTime
-)
-{
-    for (int i = 0; i < MAX_MONSTERS; i++)
-    {
-        if (!monsters[i].active)
-            continue;
+void UpdateMonsters(Monster monsters[], Vector2 targetPos, float deltaTime) {
+    for (int i = 0; i < MAX_MONSTERS; i++) {
+        if (!monsters[i].active) continue;
 
-        // 접촉 공격 쿨타임 감소
-        if (monsters[i].attackCooldown > 0.0f)
-        {
+        if (monsters[i].attackCooldown > 0.0f) {
             monsters[i].attackCooldown -= deltaTime;
         }
 
-        // 기존 플레이어 추격 이동 로직 유지
         float dx = targetPos.x - monsters[i].position.x;
         float dy = targetPos.y - monsters[i].position.y;
-        float distance = sqrtf(dx * dx + dy * dy);
+        float dist = sqrtf(dx * dx + dy * dy);
 
-        if (distance > 1.0f)
-        {
-            monsters[i].position.x += (dx / distance) * monsters[i].speed * deltaTime;
-            monsters[i].position.y += (dy / distance) * monsters[i].speed * deltaTime;
+        if (dist > 0.001f) {
+            monsters[i].position.x += (dx / dist) * monsters[i].speed * deltaTime;
+            monsters[i].position.y += (dy / dist) * monsters[i].speed * deltaTime;
         }
     }
 }
 
-// 몬스터 피격 및 사망 처리
-MonsterHitResult DamageMonster(Monster& monster, float damage)
-{
-    MonsterHitResult result = { false, false, 0, { 0.0f, 0.0f } };
+void DrawMonsters(const Monster monsters[]) {
+    for (int i = 0; i < MAX_MONSTERS; i++) {
+        if (!monsters[i].active) continue;
 
-    if (!monster.active || damage <= 0.0f)
-        return result;
+        Color color = GRAY;
+        if (monsters[i].type == MONSTER_SLEEPY) color = SKYBLUE;
+        else if (monsters[i].type == MONSTER_POP_QUIZ) color = ORANGE;
+        else if (monsters[i].type == MONSTER_TEAM_PROJECT) color = PURPLE;
+
+        DrawCircleV(monsters[i].position, monsters[i].collisionRadius, color);
+    }
+}
+
+MonsterHitResult DamageMonster(Monster* monster, float damage) {
+    MonsterHitResult result = { false, false, 0, { 0.0f, 0.0f }, false, BOSS_MIDTERM };
+    if (monster == NULL || !monster->active) return result;
 
     result.hit = true;
-    result.position = monster.position;
+    result.position = monster->position;
+    monster->hp -= damage;
 
-    monster.hp -= damage;
-
-    if (monster.hp <= 0.0f)
-    {
-        monster.hp = 0.0f;
-        monster.active = false;
-
+    if (monster->hp <= 0.0f) {
+        monster->hp = 0.0f;
+        monster->active = false;
         result.killed = true;
-        result.expReward = monster.expReward;
+        result.expReward = monster->expReward;
     }
 
     return result;
 }
 
-void DrawMonsters(const Monster monsters[])
-{
-    for (int i = 0; i < MAX_MONSTERS; i++)
-    {
-        if (!monsters[i].active)
-            continue;
+// 보스 구현
 
-        // 몬스터 종류별 색상 구분
-        Color bodyColor = PURPLE;
+void InitBoss(Boss* boss) {
+    if (boss == NULL) return;
+    boss->active = false;
+}
+// 보스 중간고사
+void SpawnMidtermBoss(Boss* boss) {
+    if (boss == NULL) return;
 
-        if (monsters[i].type == MONSTER_POP_QUIZ)
-            bodyColor = ORANGE;
-        else if (monsters[i].type == MONSTER_TEAM_PROJECT)
-            bodyColor = MAROON;
+    boss->active = true;
+    boss->type = BOSS_MIDTERM;
+    boss->position = GetRandomSpawnPosition();
+    boss->maxHp = 1000.0f;
+    boss->hp = boss->maxHp;
+    boss->speed = 5.0f;
+    boss->attack = 50.0f;
+    boss->expReward = 300;
+    boss->collisionRadius = SLEEPY_RADIUS * 2.0f; // 30.0f
+    boss->attackCooldown = 0.0f;
+}
+// 보스 기말고사
+void SpawnFinalBoss(Boss* boss) {
+    if (boss == NULL) return;
 
-        DrawCircleV(
-            monsters[i].position,
-            monsters[i].spriteRadius,
-            bodyColor
-        );
+    boss->active = true;
+    boss->type = BOSS_FINAL;
+    boss->position = GetRandomSpawnPosition();
+    boss->maxHp = 2000.0f;
+    boss->hp = boss->maxHp;
+    boss->speed = 5.0f;
+    boss->attack = 50.0f;
+    boss->expReward = 1000;
+    boss->collisionRadius = SLEEPY_RADIUS * 3.0f; // 45.0f
+    boss->attackCooldown = 0.0f;
+}
 
-        DrawCircleLines(
-            (int)monsters[i].position.x,
-            (int)monsters[i].position.y,
-            monsters[i].collisionRadius,
-            GREEN
-        );
+void UpdateBoss(Boss* boss, Vector2 targetPos, float deltaTime) {
+    if (boss == NULL || !boss->active) return;
+
+    if (boss->attackCooldown > 0.0f) {
+        boss->attackCooldown -= deltaTime;
+    }
+
+    float dx = targetPos.x - boss->position.x;
+    float dy = targetPos.y - boss->position.y;
+    float dist = sqrtf(dx * dx + dy * dy);
+
+    if (dist > 0.001f) {
+        boss->position.x += (dx / dist) * boss->speed * deltaTime;
+        boss->position.y += (dy / dist) * boss->speed * deltaTime;
     }
 }
 
-int GetActiveMonsterCount(const Monster monsters[])
-{
-    int count = 0;
+void DrawBoss(const Boss* boss) {
+    if (boss == NULL || !boss->active) return;
 
-    for (int i = 0; i < MAX_MONSTERS; i++)
-    {
-        if (monsters[i].active)
-            count++;
+    Color bodyColor = (boss->type == BOSS_MIDTERM) ? MAROON : DARKPURPLE;
+    DrawCircleV(boss->position, boss->collisionRadius, bodyColor);
+    DrawCircleLines((int)boss->position.x, (int)boss->position.y, boss->collisionRadius + 3.0f, GOLD);
+}
+
+// 화면 상단 중앙 보스 HP 바 렌더링
+void DrawBossHpBar(const Boss* boss, int screenWidth) {
+    if (boss == NULL || !boss->active) return;
+
+    int barWidth = 460;
+    int barHeight = 22;
+    int barX = (screenWidth - barWidth) / 2;
+    int barY = 55; // 상단 HUD 아래 여백
+
+    float ratio = (boss->maxHp > 0.0f) ? (boss->hp / boss->maxHp) : 0.0f;
+    if (ratio < 0.0f) ratio = 0.0f;
+
+    const char* title = (boss->type == BOSS_MIDTERM) ? "BOSS: MIDTERM EXAM" : "BOSS: FINAL EXAM";
+
+    DrawText(title, barX, barY - 22, 18, RED);
+    DrawRectangle(barX, barY, barWidth, barHeight, DARKGRAY);
+    DrawRectangle(barX, barY, (int)(barWidth * ratio), barHeight, RED);
+    DrawRectangleLines(barX, barY, barWidth, barHeight, WHITE);
+
+    DrawText(TextFormat("%.0f / %.0f", boss->hp, boss->maxHp), barX + barWidth / 2 - 45, barY + 3, 16, WHITE);
+}
+
+MonsterHitResult DamageBoss(Boss* boss, float damage) {
+    MonsterHitResult result = { false, false, 0, { 0.0f, 0.0f }, true, BOSS_MIDTERM };
+    if (boss == NULL || !boss->active) return result;
+
+    result.hit = true;
+    result.position = boss->position;
+    result.isBoss = true;
+    result.bossType = boss->type;
+
+    boss->hp -= damage;
+    if (boss->hp <= 0.0f) {
+        boss->hp = 0.0f;
+        boss->active = false;
+        result.killed = true;
+        result.expReward = boss->expReward;
     }
 
-    return count;
+    return result;
+}
+
+// 최단 거리 몬스터 탐색
+
+bool FindNearestMonsterPosition(const Monster monsters[], const Boss* boss, Vector2 origin, Vector2* outTargetPos) {
+    if (outTargetPos == NULL) return false;
+
+    float minDistSq = FLT_MAX;
+    bool found = false;
+
+    // 일반 몬스터 25마리 탐색
+    if (monsters != NULL) {
+        for (int i = 0; i < MAX_MONSTERS; i++) {
+            if (!monsters[i].active) continue;
+
+            float dx = monsters[i].position.x - origin.x;
+            float dy = monsters[i].position.y - origin.y;
+            float distSq = dx * dx + dy * dy;
+
+            if (distSq < minDistSq) {
+                minDistSq = distSq;
+                *outTargetPos = monsters[i].position;
+                found = true;
+            }
+        }
+    }
+
+    // 보스도 활성화되어 있으면 거리 비교에 포함
+    if (boss != NULL && boss->active) {
+        float dx = boss->position.x - origin.x;
+        float dy = boss->position.y - origin.y;
+        float distSq = dx * dx + dy * dy;
+
+        if (distSq < minDistSq) {
+            minDistSq = distSq;
+            *outTargetPos = boss->position;
+            found = true;
+        }
+    }
+
+    return found;
 }
