@@ -79,10 +79,10 @@ namespace passive_items
     // 화면에 활성화된 학식 그리기
     void DrawMeals(const MealDropSystem& system);
 
-    // ITEM_001 아이템 지급 ------------------------------------------
+    //------------------------------------------
 
     // 이 레벨에 도달하면 아이템을 지급하지 않음
-    constexpr int NO_REWARD_LEVEL = 13;
+    constexpr int NO_REWARD_LEVEL = 12;
 
     // 획득 문구 표시 시간(초)
     constexpr float REWARD_MESSAGE_TIME = 2.0f;
@@ -90,7 +90,7 @@ namespace passive_items
     // 레벨업 보상 결과
     enum class RewardKind
     {
-        None,   // 지급 없음 (레벨 13)
+        None,   
         Item,   // 패시브 아이템 지급
         Meal    // 모든 아이템 최대 개수: 학식 즉시 지급
     };
@@ -104,7 +104,7 @@ namespace passive_items
     // 최대 개수가 아닌 아이템 목록을 out에 채우고 개수 반환
     int GetAvailableItems(const Inventory& inventory, ItemType out[3]);
 
-    // 테스트 가능한 레벨업 보상: pick은 지급 가능한 아이템 중 순번(0부터)
+    // 테스트 가능한 레벨업 보상: pick은 지급 가능한 아이템 중 순번
     LevelUpReward GrantLevelUpReward(
         Inventory& inventory,
         float& hp,

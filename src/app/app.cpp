@@ -199,11 +199,12 @@ static void UpdateGame(App& app, float deltaTime)
 
     // 플레이어 이동
     UpdatePlayer(
-        app.player,
-        deltaTime,
-        app.screenWidth,
-        app.screenHeight
-    );
+    app.player,
+    deltaTime,
+    app.screenWidth,
+    app.screenHeight,
+    passive_items::GetSpeedMultiplier(app.inventory)
+);
 
     // 몬스터 생성
     app.spawnTimer += deltaTime;

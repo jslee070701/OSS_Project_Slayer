@@ -24,7 +24,8 @@ void UpdatePlayer(
     Player& player,
     float deltaTime,
     int screenWidth,
-    int screenHeight
+    int screenHeight,
+    float speedMultiplier
 )
 {
     // 피격 무적 시간 감소
@@ -58,9 +59,11 @@ void UpdatePlayer(
         direction.y /= length;
     }
 
-    // 플레이어 위치 갱신
-    player.position.x += direction.x * player.speed * deltaTime;
-    player.position.y += direction.y * player.speed * deltaTime;
+    // 플레이어 위치 갱신 -> (아이템 이동속도 배율 적용)
+    const float currentSpeed = player.speed * speedMultiplier;
+
+    player.position.x += direction.x * currentSpeed * deltaTime;
+    player.position.y += direction.y * currentSpeed * deltaTime;
 
     // 화면 경계 제한
     if (player.position.x < player.radius)
